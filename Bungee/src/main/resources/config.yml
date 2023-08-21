@@ -1,0 +1,4 @@
+redis:
+  host: CHANGEME
+  port: 0000
+  password: CHANGEME

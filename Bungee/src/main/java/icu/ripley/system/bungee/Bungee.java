@@ -1,22 +1,40 @@
 package icu.ripley.system.bungee;
 
 import net.md_5.bungee.api.plugin.Plugin;
+import net.md_5.bungee.config.Configuration;
+import net.md_5.bungee.config.ConfigurationProvider;
+import net.md_5.bungee.config.YamlConfiguration;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisPoolConfig;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
 import java.util.logging.Level;
 
 public final class Bungee extends Plugin {
+    JedisPool jedisPool;
 
-    final JedisPoolConfig poolConfig = new JedisPoolConfig();
-    final JedisPool jedisPool = new JedisPool(poolConfig, "localhost", 6379, 0);
-    final Jedis subscriberJedis = jedisPool.getResource();
-    final ServerCreationListener subscriber = new ServerCreationListener();
+    private String redisHost;
+    private int redisPort;
+    private String redisPassword;
 
     @Override
     public void onEnable() {
-        // Plugin startup logic
+        // jedis stuff
+        try {
+            initConfig();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        final JedisPoolConfig poolConfig = new JedisPoolConfig();
+        jedisPool = new JedisPool(poolConfig, redisHost, redisPort, 0, redisPassword);
+        final Jedis subscriberJedis = jedisPool.getResource();
+        final ServerCreationListener subscriber = new ServerCreationListener();
+
         new Thread(() -> {
             try {
                 this.getLogger().info("!! ATTEMPTING SUBSCRIBE TO SERVER EVENTS. IF FAIL, REBOOT !!");
@@ -31,5 +49,40 @@ public final class Bungee extends Plugin {
     @Override
     public void onDisable() {
         // Plugin shutdown logic
+        jedisPool.destroy();
+    }
+
+    public void initConfig() throws IOException {
+        // Create plugin config folder if it doesn't exist
+        if (!getDataFolder().exists()) {
+            getDataFolder().mkdir();
+        }
+
+        File file = new File(getDataFolder(), "config.yml");
+
+
+        if (!file.exists()) {
+            try (InputStream in = getResourceAsStream("config.yml")) {
+                Files.copy(in, file.toPath());
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            getLogger().info("!! ENTER REDIS DETAILS IN CONFIG, THEN START BUNGEE !!");
+            getProxy().stop("TheSystem configuration required.");
+        }
+
+        Configuration configuration = ConfigurationProvider.getProvider(YamlConfiguration.class).load(new File(getDataFolder(), "config.yml"));
+
+        if(configuration.getString("redis.host").equals("CHANGEME")
+                || configuration.getInt("redis.port") == 0000
+                || configuration.getString("redis.password").equals("CHANGEME")) {
+            getLogger().info("!! ENTER REDIS DETAILS IN CONFIG, THEN START BUNGEE !!");
+            getProxy().stop("TheSystem configuration required.");
+        }
+
+        redisHost = configuration.getString("redis.host");
+        redisPort = configuration.getInt("redis.port");
+        redisPassword = configuration.getString("redis.password");
     }
 }
