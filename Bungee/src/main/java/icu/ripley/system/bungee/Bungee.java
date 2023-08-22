@@ -1,5 +1,6 @@
 package icu.ripley.system.bungee;
 
+import icu.ripley.system.shared.DatabaseUtilities;
 import net.md_5.bungee.api.plugin.Plugin;
 import net.md_5.bungee.config.Configuration;
 import net.md_5.bungee.config.ConfigurationProvider;
@@ -30,8 +31,8 @@ public final class Bungee extends Plugin {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-        final JedisPoolConfig poolConfig = new JedisPoolConfig();
-        jedisPool = new JedisPool(poolConfig, redisHost, redisPort, 0, redisPassword);
+        jedisPool = DatabaseUtilities.createJedisPool(redisHost, redisPort, redisPassword);
+
         final Jedis subscriberJedis = jedisPool.getResource();
         final ServerCreationListener subscriber = new ServerCreationListener();
 

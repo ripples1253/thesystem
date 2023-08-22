@@ -1,6 +1,8 @@
 package icu.ripley.system.bungee;
 
+import icu.ripley.system.shared.EventMessageUtils;
 import icu.ripley.system.shared.EventTypes.ServerEventType;
+import icu.ripley.system.shared.SpigotServer;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.config.ServerInfo;
 import redis.clients.jedis.JedisPubSub;
@@ -26,19 +28,22 @@ public class ServerCreationListener extends JedisPubSub {
 
         switch (eventType){
             case CREATE:
-                System.out.println("attempting server creation of " + args[3] + ".");
-                String ip = args[1];
-                int port = Integer.parseInt(args[2]);
-                String serverName = args[3];
-                boolean restricted = args[4].equals("1");
+                SpigotServer spigotServer = EventMessageUtils.from(args);
+                System.out.println("attempting server creation of " + spigotServer.getServerName() + ".");
 
-                ServerInfo info = ProxyServer.getInstance().constructServerInfo(serverName, new InetSocketAddress(ip, port), "[automanaged] [started] " + serverName, restricted);
-                ProxyServer.getInstance().getServers().put(serverName, info);
+                ServerInfo info = ProxyServer.getInstance().constructServerInfo(
+                        spigotServer.getServerName(),
+                        spigotServer.getAddressAsSocketAddress(),
+                        "[automanaged] [started] " + spigotServer.getServerName(),
+                        spigotServer.isServerPrivate());
+                ProxyServer.getInstance().getServers().put(spigotServer.getServerName(), info);
+                break;
             case DESTROY:
             case OH_GOD_I_AM_IN_SO_MUCH_PAIN_PLEASE_REMOVE_AND_ALERT_ADMINS_OH_GOD_PLEASE_IT_HURTS_SO_BAD: // TODO: discord webhooks
                 System.out.println("destroying server " + args[1] + '.');
                 String serverToRemove = args[1];
                 ProxyServer.getInstance().getServers().remove(serverToRemove);
+                break;
         }
 
     }
