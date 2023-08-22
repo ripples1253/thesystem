@@ -1,8 +1,14 @@
 package icu.ripley.spigot;
 
+import icu.ripley.system.shared.DatabaseUtilities;
+import icu.ripley.system.shared.EventMessageUtils;
+import icu.ripley.system.shared.EventTypes.ServerEventType;
+import icu.ripley.system.shared.SpigotServer;
 import lombok.Getter;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
+import redis.clients.jedis.Jedis;
+import redis.clients.jedis.JedisPool;
 
 import java.util.logging.Level;
 
@@ -10,6 +16,10 @@ public final class Spigot extends JavaPlugin {
 
     @Getter
     private final FileConfiguration config = this.getConfig();
+
+    private JedisPool jedisPool;
+
+    private SpigotServer spigotServer;
 
     @Override
     public void onEnable() {
@@ -22,6 +32,16 @@ public final class Spigot extends JavaPlugin {
             }
             getServer().shutdown();
         }
+
+        spigotServer = createSpigotServerDetails();
+
+        jedisPool = DatabaseUtilities.createJedisPool(config.getString("redis.host"),
+                config.getInt("redis.port"),
+                config.getString("redis.password"));
+
+        Jedis jedisTest = jedisPool.getResource();
+
+        jedisTest.publish("ServerEvents", EventMessageUtils.to(ServerEventType.CREATE, spigotServer));
     }
 
     @Override
@@ -46,5 +66,13 @@ public final class Spigot extends JavaPlugin {
                 && !config.getString("redis.password").equals("CHANGEME")
                 && !config.getString("server.name").equals("CHANGEME")
                 && !config.getString("server.node").equals("CHANGEME");
+    }
+
+    private SpigotServer createSpigotServerDetails(){
+        return new SpigotServer(config.getString("server.name"),
+                config.getString("server.node"),
+                config.getString("server.ip"),
+                config.getInt("server.port"),
+                config.getBoolean("server.private"));
     }
 }

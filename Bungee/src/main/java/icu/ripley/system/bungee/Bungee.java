@@ -17,7 +17,7 @@ import java.nio.file.Files;
 import java.util.logging.Level;
 
 public final class Bungee extends Plugin {
-    JedisPool jedisPool;
+    private JedisPool jedisPool;
 
     private String redisHost;
     private int redisPort;
@@ -31,6 +31,7 @@ public final class Bungee extends Plugin {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+
         jedisPool = DatabaseUtilities.createJedisPool(redisHost, redisPort, redisPassword);
 
         final Jedis subscriberJedis = jedisPool.getResource();
