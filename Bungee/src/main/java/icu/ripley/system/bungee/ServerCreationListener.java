@@ -36,13 +36,13 @@ public class ServerCreationListener extends JedisPubSub {
                         spigotServer.getAddressAsSocketAddress(),
                         "[automanaged] [started] " + spigotServer.getServerName(),
                         spigotServer.isServerPrivate());
-                ProxyServer.getInstance().getServers().put(spigotServer.getServerName(), info);
+                ProxyServer.getInstance().getServersCopy().put(spigotServer.getServerName(), info);
                 break;
             case DESTROY:
             case OH_GOD_I_AM_IN_SO_MUCH_PAIN_PLEASE_REMOVE_AND_ALERT_ADMINS_OH_GOD_PLEASE_IT_HURTS_SO_BAD: // TODO: discord webhooks
                 System.out.println("destroying server " + args[1] + '.');
                 String serverToRemove = args[1];
-                ProxyServer.getInstance().getServers().remove(serverToRemove);
+                ProxyServer.getInstance().getServersCopy().remove(serverToRemove);
                 break;
         }
 
