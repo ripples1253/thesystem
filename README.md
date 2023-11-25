@@ -1,6 +1,8 @@
 # TheSystem
 A manager for BungeeCord Networks.
 
+# THIS IS DEPRECATED, REWRITE IS IN THE v2_rewrite BRANCH!!
+
 Quick Links:
 - [BungeeCord Plugin - For automatically adding servers to the proxy.](https://github.com/ripples1253/thesystem/tree/develop/Bungee)
 - [Spigot Plugin - For the API that plugins can use.](https://github.com/ripples1253/thesystem/tree/develop/Spigot)
